@@ -98,8 +98,10 @@ enum State {
 	ST_PING_ACK,
     ST_REQHISTORICALTICKS,
     ST_REQHISTORICALTICKS_ACK,
-    ST_REQTICKBYTICKDATA,
-    ST_REQTICKBYTICKDATA_ACK,
+    ST_REQTICKBYTICKDATA_START,
+    ST_REQTICKBYTICKDATA_START_ACK,
+    ST_REQTICKBYTICKDATA_STOP,
+    ST_REQTICKBYTICKDATA_STOP_ACK,
 	ST_WHATIFSAMPLES,
 	ST_WHATIFSAMPLES_ACK,
 	ST_IDLE
@@ -111,7 +113,7 @@ class TestCppClient : public EWrapper
 //! [ewrapperimpl]
 public:
 
-	TestCppClient();
+	TestCppClient(Contract& contract);
 	~TestCppClient();
 
 	void setConnectOptions(const std::string&);
@@ -163,15 +165,15 @@ private:
 	void marketRuleOperations();
 	void continuousFuturesOperations();
     void reqHistoricalTicks();
-    void reqTickByTickData();
+    void reqTickByTickDataStart();
+    void reqTickByTickDataStop();
 	void whatIfSamples();
 
 	void reqCurrentTime();
-
 public:
 	// events
 	#include "EWrapper_prototypes.h"
-
+        uint64_t m_seq; // Sequence number to differentiate ticks received in the same millisecond.
 
 private:
 	void printContractMsg(const Contract& contract);
@@ -191,6 +193,7 @@ private:
 	EReader *m_pReader;
     bool m_extraAuth;
 	std::string m_bboExchange;
+        Contract m_currentContract;
 };
 
 #endif

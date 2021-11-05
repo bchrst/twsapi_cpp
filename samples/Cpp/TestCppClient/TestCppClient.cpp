@@ -43,7 +43,7 @@ const int SLEEP_BETWEEN_PINGS = 30; // seconds
 ///////////////////////////////////////////////////////////
 // member funcs
 //! [socket_init]
-TestCppClient::TestCppClient() :
+TestCppClient::TestCppClient(Contract& contract) :
       m_osSignal(2000)//2-seconds timeout
     , m_pClient(new EClientSocket(this, &m_osSignal))
 	, m_state(ST_CONNECT)
@@ -51,6 +51,8 @@ TestCppClient::TestCppClient() :
 	, m_orderId(0)
     , m_pReader(0)
     , m_extraAuth(false)
+    , m_seq(0)
+    , m_currentContract(contract)
 {
 }
 //! [socket_init]
@@ -294,10 +296,19 @@ void TestCppClient::processMessages()
             break;
         case ST_REQHISTORICALTICKS_ACK:
             break;
-		case ST_REQTICKBYTICKDATA:
-			reqTickByTickData();
+		case ST_REQTICKBYTICKDATA_START:
+			reqTickByTickDataStart();
 			break;
-		case ST_REQTICKBYTICKDATA_ACK:
+		case ST_REQTICKBYTICKDATA_START_ACK:
+                        Sleep(3);
+                        m_state = ST_REQTICKBYTICKDATA_STOP;
+			break;
+		case ST_REQTICKBYTICKDATA_STOP:
+			reqTickByTickDataStop();
+			break;
+		case ST_REQTICKBYTICKDATA_STOP_ACK:
+                        Sleep(3);
+                        m_state = ST_REQTICKBYTICKDATA_START;
 			break;
 		case ST_WHATIFSAMPLES:
 			whatIfSamples();
@@ -1311,8 +1322,21 @@ void TestCppClient::reqHistoricalTicks()
     m_state = ST_REQHISTORICALTICKS_ACK;
 }
 
-void TestCppClient::reqTickByTickData() 
+void TestCppClient::reqTickByTickDataStart() 
 {
+    printf("Getting data\n");
+    m_pClient->reqTickByTickData(1, this->m_currentContract, "MidPoint", 1, false);
+    m_state = ST_REQTICKBYTICKDATA_START_ACK;
+}
+void TestCppClient::reqTickByTickDataStop() 
+{
+    printf("Stopping data\n");
+    m_pClient->cancelTickByTickData(1);
+    m_state = ST_REQTICKBYTICKDATA_STOP_ACK;
+}
+#if 0
+    std::this_thread::sleep_for(std::chrono::seconds(10));
+    m_pClient->cancelTickByTickData(20004);
     /*** Requesting tick-by-tick data (only refresh) ***/
     
     m_pClient->reqTickByTickData(20001, ContractSamples::EuropeanStock(), "Last", 0, false);
@@ -1346,6 +1370,7 @@ void TestCppClient::reqTickByTickData()
 
     m_state = ST_REQTICKBYTICKDATA_ACK;
 }
+#endif
 
 void TestCppClient::whatIfSamples()
 {
@@ -1366,7 +1391,7 @@ void TestCppClient::nextValidId( OrderId orderId)
 
     //m_state = ST_TICKOPTIONCOMPUTATIONOPERATION; 
     //m_state = ST_TICKDATAOPERATION; 
-    //m_state = ST_REQTICKBYTICKDATA; 
+    m_state = ST_REQTICKBYTICKDATA_START; 
     //m_state = ST_REQHISTORICALTICKS; 
     //m_state = ST_CONTFUT; 
     //m_state = ST_PNLSINGLE; 
@@ -1403,7 +1428,7 @@ void TestCppClient::nextValidId( OrderId orderId)
 	//m_state = ST_REQHISTOGRAMDATA;
 	//m_state = ST_REROUTECFD;
 	//m_state = ST_MARKETRULE;
-	m_state = ST_PING;
+	//m_state = ST_PING;
 	//m_state = ST_WHATIFSAMPLES;
 }
 
@@ -2021,8 +2046,11 @@ void TestCppClient::pnlSingle(int reqId, int pos, double dailyPnL, double unreal
 //! [historicalticks]
 void TestCppClient::historicalTicks(int reqId, const std::vector<HistoricalTick>& ticks, bool done) {
     for (HistoricalTick tick : ticks) {
-	std::time_t t = tick.time;
-        std::cout << "Historical tick. ReqId: " << reqId << ", time: " << ctime(&t) << ", price: "<< tick.price << ", size: " << tick.size << std::endl;
+	std::time_t time = tick.time;
+        char ftime[32];
+        strftime(ftime, 32, "%Y%m%d%H%M%S", localtime(&time));
+        this->m_seq++;
+        std::cout << ftime << "." << m_seq << ", " << tick.price << ", " << 1 << std::endl;
     }
 }
 //! [historicalticks]
@@ -2065,7 +2093,11 @@ void TestCppClient::tickByTickBidAsk(int reqId, time_t time, double bidPrice, do
 
 //! [tickbytickmidpoint]
 void TestCppClient::tickByTickMidPoint(int reqId, time_t time, double midPoint) {
-    printf("Tick-By-Tick. ReqId: %d, TickType: MidPoint, Time: %s, MidPoint: %g\n", reqId, ctime(&time), midPoint);
+    char ftime[32];
+    strftime(ftime, 32, "%Y%m%d%H%M%S", localtime(&time));
+    this->m_seq++;
+
+    std::cout << ftime << "." << this->m_seq << ", " << midPoint << ", 0" << std::endl;
 }
 //! [tickbytickmidpoint]
 

@@ -11,7 +11,7 @@ $(TARGET)Static:
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $(BASE_SRC_DIR)/*.cpp ./*.cpp -o$(TARGET)
 
 $(TARGET):
-	$(CXX) $(CXXFLAGS) $(INCLUDES) ./*.cpp -o$(TARGET) $(SHARED_LIB_DIRS) $(SHARD_LIBS)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) ./*.cpp -o$(TARGET) $(SHARED_LIB_DIRS) $(SHARD_LIBS) 
 
 clean:
 	rm -f $(TARGET) *.o
