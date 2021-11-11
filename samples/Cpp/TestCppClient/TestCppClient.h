@@ -107,13 +107,27 @@ enum State {
 	ST_IDLE
 };
 
+struct UserInput {
+        Contract contract;
+        std::string orderType;
+        uint64_t quantity;
+        double limitPrice;
+
+	UserInput(Contract &contract, std::string orderType, uint64_t qty, double limitPrice)
+		: contract(contract)
+		, orderType(orderType)
+		, quantity(qty)
+                , limitPrice(limitPrice)
+	{}
+};
+
 //! [ewrapperimpl]
 class TestCppClient : public EWrapper
 {
 //! [ewrapperimpl]
 public:
 
-	TestCppClient(Contract& contract);
+	TestCppClient(UserInput& input);
 	~TestCppClient();
 
 	void setConnectOptions(const std::string&);
@@ -194,6 +208,9 @@ private:
     bool m_extraAuth;
 	std::string m_bboExchange;
         Contract m_currentContract;
+        std::string m_orderType;
+        uint64_t m_quantity;
+        double m_limitPrice;
 };
 
 #endif

@@ -43,7 +43,7 @@ const int SLEEP_BETWEEN_PINGS = 30; // seconds
 ///////////////////////////////////////////////////////////
 // member funcs
 //! [socket_init]
-TestCppClient::TestCppClient(Contract& contract) :
+TestCppClient::TestCppClient(UserInput& input) :
       m_osSignal(2000)//2-seconds timeout
     , m_pClient(new EClientSocket(this, &m_osSignal))
 	, m_state(ST_CONNECT)
@@ -52,7 +52,10 @@ TestCppClient::TestCppClient(Contract& contract) :
     , m_pReader(0)
     , m_extraAuth(false)
     , m_seq(0)
-    , m_currentContract(contract)
+    , m_currentContract(input.contract)
+    , m_orderType(input.orderType)
+    , m_quantity(input.quantity)
+    , m_limitPrice(input.limitPrice)
 {
 }
 //! [socket_init]
@@ -300,14 +303,12 @@ void TestCppClient::processMessages()
 			reqTickByTickDataStart();
 			break;
 		case ST_REQTICKBYTICKDATA_START_ACK:
-                        Sleep(3);
-                        m_state = ST_REQTICKBYTICKDATA_STOP;
+//                        m_state = ST_REQTICKBYTICKDATA_STOP;  // Never stop streaming data
 			break;
 		case ST_REQTICKBYTICKDATA_STOP:
 			reqTickByTickDataStop();
 			break;
 		case ST_REQTICKBYTICKDATA_STOP_ACK:
-                        Sleep(3);
                         m_state = ST_REQTICKBYTICKDATA_START;
 			break;
 		case ST_WHATIFSAMPLES:
@@ -779,7 +780,7 @@ void TestCppClient::orderOperations()
 
 	/*** Placing/modifying an order - remember to ALWAYS increment the nextValidId after placing an order so it can be used for the next one! ***/
     //! [order_submission]
-	m_pClient->placeOrder(m_orderId++, ContractSamples::USStock(), OrderSamples::LimitOrder("SELL", 1, 75));
+	m_pClient->placeOrder(m_orderId++, this->m_currentContract, OrderSamples::LimitOrder(this->m_orderType, m_quantity, m_limitPrice));
     //! [order_submission]
 
 	//m_pClient->placeOrder(m_orderId++, ContractSamples::OptionAtBox(), OrderSamples::Block("BUY", 50, 20));
@@ -806,35 +807,36 @@ void TestCppClient::orderOperations()
 	//m_pClient->placeOrder(m_orderId++, ContractSamples::USStock(), OrderSamples::TrailingStopLimit("BUY", 1, 2, 5, 50));
 	
 	//! [place_midprice]
-	m_pClient->placeOrder(m_orderId++, ContractSamples::USStockAtSmart(), OrderSamples::Midprice("BUY", 1, 80));
+//	m_pClient->placeOrder(m_orderId++, ContractSamples::USStockAtSmart(), OrderSamples::Midprice("BUY", 1, 80));
 	//! [place_midprice]
 	
 	//! [place order with cashQty]
-	m_pClient->placeOrder(m_orderId++, ContractSamples::USStockAtSmart(), OrderSamples::LimitOrderWithCashQty("BUY", 1, 30, 5000));
+//	m_pClient->placeOrder(m_orderId++, ContractSamples::USStockAtSmart(), OrderSamples::LimitOrderWithCashQty("BUY", 1, 30, 5000));
 	//! [place order with cashQty]
 
 	std::this_thread::sleep_for(std::chrono::seconds(1));
 
 	/*** Cancel one order ***/
 	//! [cancelorder]
-	m_pClient->cancelOrder(m_orderId-1);
+	//m_pClient->cancelOrder(m_orderId-1);
 	//! [cancelorder]
 	
 	/*** Cancel all orders for all accounts ***/
 	//! [reqglobalcancel]
-	m_pClient->reqGlobalCancel();
+	//m_pClient->reqGlobalCancel();
 	//! [reqglobalcancel]
 
 	/*** Request the day's executions ***/
 	//! [reqexecutions]
-	m_pClient->reqExecutions(10001, ExecutionFilter());
+	//m_pClient->reqExecutions(10001, ExecutionFilter());
 	//! [reqexecutions]
 
 	//! [reqcompletedorders]
-	m_pClient->reqCompletedOrders(false);
+	//m_pClient->reqCompletedOrders(false);
 	//! [reqcompletedorders]
 
 	m_state = ST_ORDEROPERATIONS_ACK;
+        exit(0);
 }
 
 void TestCppClient::ocaSamples()
@@ -1391,7 +1393,7 @@ void TestCppClient::nextValidId( OrderId orderId)
 
     //m_state = ST_TICKOPTIONCOMPUTATIONOPERATION; 
     //m_state = ST_TICKDATAOPERATION; 
-    m_state = ST_REQTICKBYTICKDATA_START; 
+    //m_state = ST_REQTICKBYTICKDATA_START; 
     //m_state = ST_REQHISTORICALTICKS; 
     //m_state = ST_CONTFUT; 
     //m_state = ST_PNLSINGLE; 
@@ -1406,7 +1408,7 @@ void TestCppClient::nextValidId( OrderId orderId)
 	//m_state = ST_FUNDAMENTALS;
 	//m_state = ST_BULLETINS;
 	//m_state = ST_ACCOUNTOPERATIONS;
-	//m_state = ST_ORDEROPERATIONS;
+        m_state = ST_ORDEROPERATIONS;
 	//m_state = ST_OCASAMPLES;
 	//m_state = ST_CONDITIONSAMPLES;
 	//m_state = ST_BRACKETSAMPLES;

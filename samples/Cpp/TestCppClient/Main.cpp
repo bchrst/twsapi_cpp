@@ -24,8 +24,8 @@ int main(int argc, char** argv)
 
         Contract myContract;
 
-        if(argc < 6) {
-            std::cout<<"Usage: TestCppClient <tws host> <tws port> <symbol> <sectype> <currency> <exchange>"<<std::endl;
+        if(argc < 9) {
+            std::cout<<"Usage: TestCppClient <tws host> <tws port> <symbol> <sectype> <currency> <exchange> <buy/sell> <quantity> <limit price>"<<std::endl;
             exit(0);
         }
 	int port = argc > 2 ? atoi(argv[2]) : 0;
@@ -34,10 +34,23 @@ int main(int argc, char** argv)
 	const char* connectOptions = argc > 3 ? argv[3] : "";
 	int clientId = 0;
 
+        // Parse command line arguments
         myContract.symbol = std::string(argv[3]);
         myContract.secType = std::string(argv[4]);
         myContract.currency = std::string(argv[5]);
         myContract.exchange = std::string(argv[6]);
+
+        std::string orderType;
+        if (std::string(argv[7]).find('b') != std::string::npos || std::string(argv[7]).find('B') != std::string::npos) {
+            orderType = "BUY";
+        }
+        else {
+            orderType = "SELL";
+        }
+        uint64_t qty = atoi(argv[8]);
+        double limitPrice = atof(argv[9]);
+
+        UserInput input(myContract, orderType, qty, limitPrice);
 
 	unsigned attempt = 0;
 	printf( "Start of C++ Socket Client Test %u\n", attempt);
@@ -46,7 +59,7 @@ int main(int argc, char** argv)
 		++attempt;
 		printf( "Attempt %u of %u\n", attempt, MAX_ATTEMPTS);
 
-		TestCppClient client(myContract);
+		TestCppClient client(input);
 
 		// Run time error will occur (here) if TestCppClient.exe is compiled in debug mode but TwsSocketClient.dll is compiled in Release mode
 		// TwsSocketClient.dll (in Release Mode) is copied by API installer into SysWOW64 folder within Windows directory 
