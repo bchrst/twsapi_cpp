@@ -300,14 +300,11 @@ void TestCppClient::processMessages()
 			reqTickByTickDataStart();
 			break;
 		case ST_REQTICKBYTICKDATA_START_ACK:
-                        Sleep(3);
-                        m_state = ST_REQTICKBYTICKDATA_STOP;
 			break;
 		case ST_REQTICKBYTICKDATA_STOP:
 			reqTickByTickDataStop();
 			break;
 		case ST_REQTICKBYTICKDATA_STOP_ACK:
-                        Sleep(3);
                         m_state = ST_REQTICKBYTICKDATA_START;
 			break;
 		case ST_WHATIFSAMPLES:
@@ -1315,22 +1312,23 @@ void TestCppClient::continuousFuturesOperations()
 void TestCppClient::reqHistoricalTicks() 
 {
 	//! [reqhistoricalticks]
+#if 0
     m_pClient->reqHistoricalTicks(19001, ContractSamples::IBMUSStockAtSmart(), "20170621 09:38:33", "", 10, "BID_ASK", 1, true, TagValueListSPtr());
     m_pClient->reqHistoricalTicks(19002, ContractSamples::IBMUSStockAtSmart(), "20170621 09:38:33", "", 10, "MIDPOINT", 1, true, TagValueListSPtr());
     m_pClient->reqHistoricalTicks(19003, ContractSamples::IBMUSStockAtSmart(), "20170621 09:38:33", "", 10, "TRADES", 1, true, TagValueListSPtr());
+#endif
+    m_pClient->reqHistoricalTicks(1, this->m_currentContract, "20211126 09:00:00", "", 10, "MIDPOINT", 1, true, TagValueListSPtr());
     //! [reqhistoricalticks]
     m_state = ST_REQHISTORICALTICKS_ACK;
 }
 
 void TestCppClient::reqTickByTickDataStart() 
 {
-    printf("Getting data\n");
     m_pClient->reqTickByTickData(1, this->m_currentContract, "MidPoint", 1, false);
     m_state = ST_REQTICKBYTICKDATA_START_ACK;
 }
 void TestCppClient::reqTickByTickDataStop() 
 {
-    printf("Stopping data\n");
     m_pClient->cancelTickByTickData(1);
     m_state = ST_REQTICKBYTICKDATA_STOP_ACK;
 }
@@ -1391,8 +1389,8 @@ void TestCppClient::nextValidId( OrderId orderId)
 
     //m_state = ST_TICKOPTIONCOMPUTATIONOPERATION; 
     //m_state = ST_TICKDATAOPERATION; 
-    m_state = ST_REQTICKBYTICKDATA_START; 
-    //m_state = ST_REQHISTORICALTICKS; 
+    //m_state = ST_REQTICKBYTICKDATA_START; 
+    m_state = ST_REQHISTORICALTICKS; 
     //m_state = ST_CONTFUT; 
     //m_state = ST_PNLSINGLE; 
     //m_state = ST_PNL; 

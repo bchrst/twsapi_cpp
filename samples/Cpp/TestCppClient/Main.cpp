@@ -14,39 +14,60 @@
 const unsigned MAX_ATTEMPTS = 50;
 const unsigned SLEEP_TIME = 10;
 
+void printUsageExit() {
+    std::cout<<"UsageExit: "<<std::endl;
+    std::cout<<" - Stocks / Bonds / CFDs / etc: TestCppClient <tws host> <tws port> <connect options> <symbol> <sectype> <currency> <exchange>"<<std::endl;
+    std::cout<<" - Options: TestCppClient <tws host> <tws port> <connect options> <symbol> <sectype> <currency> <exchange> <last trade date or contract month> <right> <strike> <multiplier>"<<std::endl;
+    exit(0);
+}
+
 /* IMPORTANT: always use your paper trading account. The code below will submit orders as part of the demonstration. */
 /* IB will not be responsible for accidental executions on your live account. */
 /* Any stock or option symbols displayed are for illustrative purposes only and are not intended to portray a recommendation. */
 /* Before contacting our API support team please refer to the available documentation. */
 int main(int argc, char** argv)
 {
-	const char* host = argc > 1 ? argv[1] : "";
+        if(argc < 6) {
+            printUsageExit();
+        }
+
+	const char* host = argv[1];
+
+	int port = atoi(argv[2]);
 
         Contract myContract;
 
-        if(argc < 6) {
-            std::cout<<"Usage: TestCppClient <tws host> <tws port> <symbol> <sectype> <currency> <exchange>"<<std::endl;
-            exit(0);
+        if(std::string(argv[5]) == std::string("OPT")) {
+            if(argc < 12) {
+                printUsageExit();
+            }
+            myContract.lastTradeDateOrContractMonth = std::string(argv[8]);
+            myContract.right = std::string(argv[9]);
+            myContract.strike = atof(argv[10]);
+            myContract.multiplier = std::string(argv[11]);
         }
-	int port = argc > 2 ? atoi(argv[2]) : 0;
-	if (port <= 0)
-		port = 7496;
-	const char* connectOptions = argc > 3 ? argv[3] : "";
-	int clientId = 0;
+        else if(argc < 8) {
+            printUsageExit();
+        }
 
-        myContract.symbol = std::string(argv[3]);
-        myContract.secType = std::string(argv[4]);
-        myContract.currency = std::string(argv[5]);
-        myContract.exchange = std::string(argv[6]);
+        myContract.symbol = std::string(argv[4]);
+        myContract.secType = std::string(argv[5]);
+        myContract.currency = std::string(argv[6]);
+        myContract.exchange = std::string(argv[7]);
+
+        // Connect options is now mandatory. Type "" as the third argument to use default values
+	const char* connectOptions = argv[3];
+
+	int clientId = 0;
 
 	unsigned attempt = 0;
 	printf( "Start of C++ Socket Client Test %u\n", attempt);
 
+        TestCppClient client(myContract);
+
 	for (;;) {
 		++attempt;
 		printf( "Attempt %u of %u\n", attempt, MAX_ATTEMPTS);
-
-		TestCppClient client(myContract);
 
 		// Run time error will occur (here) if TestCppClient.exe is compiled in debug mode but TwsSocketClient.dll is compiled in Release mode
 		// TwsSocketClient.dll (in Release Mode) is copied by API installer into SysWOW64 folder within Windows directory 
