@@ -7,6 +7,10 @@
 #include <vector>
 #include <cstdint>
 #include <string>
+#include <sstream> // stringstream
+#include <iomanip> // put_time
+#include <chrono>
+#include <iostream>
 
 class Utils {
 
@@ -14,6 +18,7 @@ public:
     static inline bool is_base64(std::uint8_t c);
     static std::vector<std::uint8_t> base64_decode(std::string const&);
     static std::string formatDoubleString(std::string const&);
+    static std::string return_current_time_and_date(uint64_t delay_in_secs);
 };
 
 #endif

@@ -62,3 +62,14 @@ std::string Utils::formatDoubleString(std::string const& str) {
     return buf;
 }
 
+
+std::string Utils::return_current_time_and_date(uint64_t delay_in_secs)
+{
+    auto now = std::chrono::system_clock::now();
+    std::chrono::duration<int, std::ratio<1>> delay(delay_in_secs);
+    auto in_time_t = std::chrono::system_clock::to_time_t(now - delay);
+
+    std::stringstream ss;
+    ss << std::put_time(std::localtime(&in_time_t), "%Y%m%d %X");
+    return ss.str();
+}

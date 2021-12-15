@@ -291,11 +291,12 @@ void TestCppClient::processMessages()
 		case ST_CONTFUT:
 			continuousFuturesOperations();
 			break;
-        case ST_REQHISTORICALTICKS:
-            reqHistoricalTicks();
-            break;
-        case ST_REQHISTORICALTICKS_ACK:
-            break;
+                case ST_REQHISTORICALTICKS:
+                        reqHistoricalTicks();
+                        break;
+                case ST_REQHISTORICALTICKS_ACK:
+                        m_state = ST_REQHISTORICALTICKS;
+                        break;
 		case ST_REQTICKBYTICKDATA_START:
 			reqTickByTickDataStart();
 			break;
@@ -1311,13 +1312,14 @@ void TestCppClient::continuousFuturesOperations()
 
 void TestCppClient::reqHistoricalTicks() 
 {
+    auto now_delayed = Utils::return_current_time_and_date(this->m_currentContract.delay);
 	//! [reqhistoricalticks]
 #if 0
     m_pClient->reqHistoricalTicks(19001, ContractSamples::IBMUSStockAtSmart(), "20170621 09:38:33", "", 10, "BID_ASK", 1, true, TagValueListSPtr());
     m_pClient->reqHistoricalTicks(19002, ContractSamples::IBMUSStockAtSmart(), "20170621 09:38:33", "", 10, "MIDPOINT", 1, true, TagValueListSPtr());
     m_pClient->reqHistoricalTicks(19003, ContractSamples::IBMUSStockAtSmart(), "20170621 09:38:33", "", 10, "TRADES", 1, true, TagValueListSPtr());
 #endif
-    m_pClient->reqHistoricalTicks(1, this->m_currentContract, "20211126 09:00:00", "", 10, "MIDPOINT", 1, true, TagValueListSPtr());
+    m_pClient->reqHistoricalTicks(1, this->m_currentContract, now_delayed, "", 10, "MIDPOINT", 1, true, TagValueListSPtr());
     //! [reqhistoricalticks]
     m_state = ST_REQHISTORICALTICKS_ACK;
 }

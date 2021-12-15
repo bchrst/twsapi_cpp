@@ -105,6 +105,7 @@ struct Contract
 	// delta neutral contract
 	DeltaNeutralContract* deltaNeutralContract;
 
+	uint64_t delay;
 public:
 
 	// Helpers

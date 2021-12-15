@@ -27,7 +27,7 @@ void printUsageExit() {
 /* Before contacting our API support team please refer to the available documentation. */
 int main(int argc, char** argv)
 {
-        if(argc < 6) {
+        if(argc < 7) {
             printUsageExit();
         }
 
@@ -37,26 +37,27 @@ int main(int argc, char** argv)
 
         Contract myContract;
 
-        if(std::string(argv[5]) == std::string("OPT")) {
-            if(argc < 12) {
+        if(std::string(argv[6]) == std::string("OPT")) {
+            if(argc < 13) {
                 printUsageExit();
             }
-            myContract.lastTradeDateOrContractMonth = std::string(argv[8]);
-            myContract.right = std::string(argv[9]);
-            myContract.strike = atof(argv[10]);
-            myContract.multiplier = std::string(argv[11]);
+            myContract.lastTradeDateOrContractMonth = std::string(argv[9]);
+            myContract.right = std::string(argv[10]);
+            myContract.strike = atof(argv[11]);
+            myContract.multiplier = std::string(argv[12]);
         }
-        else if(argc < 8) {
+        else if(argc < 9) {
             printUsageExit();
         }
 
-        myContract.symbol = std::string(argv[4]);
-        myContract.secType = std::string(argv[5]);
-        myContract.currency = std::string(argv[6]);
-        myContract.exchange = std::string(argv[7]);
-
         // Connect options is now mandatory. Type "" as the third argument to use default values
 	const char* connectOptions = argv[3];
+
+        myContract.delay = atoi(argv[4]);
+        myContract.symbol = std::string(argv[5]);
+        myContract.secType = std::string(argv[6]);
+        myContract.currency = std::string(argv[7]);
+        myContract.exchange = std::string(argv[8]);
 
 	int clientId = 0;
 
