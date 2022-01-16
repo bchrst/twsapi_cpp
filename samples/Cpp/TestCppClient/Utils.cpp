@@ -62,14 +62,33 @@ std::string Utils::formatDoubleString(std::string const& str) {
     return buf;
 }
 
-
-std::string Utils::return_current_time_and_date(uint64_t delay_in_secs)
+std::string Utils::get_timestamp(std::chrono::time_point<std::chrono::system_clock> base_time, uint64_t delay_in_secs)
 {
-    auto now = std::chrono::system_clock::now();
     std::chrono::duration<int, std::ratio<1>> delay(delay_in_secs);
-    auto in_time_t = std::chrono::system_clock::to_time_t(now - delay);
-
+    auto in_time_t = std::chrono::system_clock::to_time_t(base_time - delay);
     std::stringstream ss;
     ss << std::put_time(std::localtime(&in_time_t), "%Y%m%d %X");
     return ss.str();
+}
+
+
+std::chrono::time_point<std::chrono::system_clock> Utils::stream_ticks(std::string last_tick) {
+    const char *last_tick_str_cstr = last_tick.c_str();
+
+    int yy, month, dd, hh, mm, ss;
+    struct tm tm_start;
+    std::time_t next_t;
+
+    sscanf(last_tick_str_cstr, "%4d%2d%2d%2d%2d%2d", &yy, &month, &dd, &hh, &mm, &ss);
+    tm_start.tm_year = yy-1900;
+    tm_start.tm_mon = month-1;
+    tm_start.tm_mday = dd;
+    tm_start.tm_hour = hh;
+    tm_start.tm_min = mm+1;  // start 1 minute after the last received tick
+    tm_start.tm_sec = ss;
+    tm_start.tm_isdst = -1;
+
+    next_t = mktime(&tm_start);
+
+    return std::chrono::system_clock::from_time_t(next_t);
 }

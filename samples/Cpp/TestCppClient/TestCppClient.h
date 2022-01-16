@@ -174,6 +174,8 @@ public:
 	// events
 	#include "EWrapper_prototypes.h"
         uint64_t m_seq; // Sequence number to differentiate ticks received in the same millisecond.
+        uint64_t m_reqId; // Incrementing request ID
+        std::string m_last_tick;
 
 private:
 	void printContractMsg(const Contract& contract);

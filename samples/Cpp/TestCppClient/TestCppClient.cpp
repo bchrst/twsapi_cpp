@@ -36,6 +36,7 @@
 #include <ctime>
 #include <fstream>
 #include <cstdint>
+#include <cstring>
 
 const int PING_DEADLINE = 2; // seconds
 const int SLEEP_BETWEEN_PINGS = 30; // seconds
@@ -53,7 +54,10 @@ TestCppClient::TestCppClient(Contract& contract) :
     , m_extraAuth(false)
     , m_seq(0)
     , m_currentContract(contract)
+    , m_reqId(0)
 {
+    auto now = std::chrono::system_clock::now();
+    m_last_tick = Utils::get_timestamp(now, this->m_currentContract.delay);
 }
 //! [socket_init]
 TestCppClient::~TestCppClient()
@@ -1312,14 +1316,13 @@ void TestCppClient::continuousFuturesOperations()
 
 void TestCppClient::reqHistoricalTicks() 
 {
-    auto now_delayed = Utils::return_current_time_and_date(this->m_currentContract.delay);
 	//! [reqhistoricalticks]
 #if 0
     m_pClient->reqHistoricalTicks(19001, ContractSamples::IBMUSStockAtSmart(), "20170621 09:38:33", "", 10, "BID_ASK", 1, true, TagValueListSPtr());
     m_pClient->reqHistoricalTicks(19002, ContractSamples::IBMUSStockAtSmart(), "20170621 09:38:33", "", 10, "MIDPOINT", 1, true, TagValueListSPtr());
     m_pClient->reqHistoricalTicks(19003, ContractSamples::IBMUSStockAtSmart(), "20170621 09:38:33", "", 10, "TRADES", 1, true, TagValueListSPtr());
 #endif
-    m_pClient->reqHistoricalTicks(1, this->m_currentContract, now_delayed, "", 10, "MIDPOINT", 1, true, TagValueListSPtr());
+    m_pClient->reqHistoricalTicks(this->m_reqId++, this->m_currentContract, this->m_last_tick, "", 100, "MIDPOINT", 1, true, TagValueListSPtr());
     //! [reqhistoricalticks]
     m_state = ST_REQHISTORICALTICKS_ACK;
 }
@@ -2045,13 +2048,17 @@ void TestCppClient::pnlSingle(int reqId, int pos, double dailyPnL, double unreal
 
 //! [historicalticks]
 void TestCppClient::historicalTicks(int reqId, const std::vector<HistoricalTick>& ticks, bool done) {
+    char ftime[32];
+
     for (HistoricalTick tick : ticks) {
 	std::time_t time = tick.time;
-        char ftime[32];
         strftime(ftime, 32, "%Y%m%d%H%M%S", localtime(&time));
         this->m_seq++;
         std::cout << ftime << "." << m_seq << ", " << tick.price << ", " << 1 << std::endl;
     }
+    // Save last tick timestamp to get more ticks
+    this->m_last_tick = Utils::get_timestamp(Utils::stream_ticks(std::string(ftime)), 0);
+    memset(ftime, 0, 32);
 }
 //! [historicalticks]
 
@@ -2093,6 +2100,7 @@ void TestCppClient::tickByTickBidAsk(int reqId, time_t time, double bidPrice, do
 
 //! [tickbytickmidpoint]
 void TestCppClient::tickByTickMidPoint(int reqId, time_t time, double midPoint) {
+
     char ftime[32];
     strftime(ftime, 32, "%Y%m%d%H%M%S", localtime(&time));
     this->m_seq++;
